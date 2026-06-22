@@ -1,17 +1,33 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-COMMITS=$((RANDOM % 3 + 3))   # 3-5 commits
+set -euo pipefail
 
-echo "Creating $COMMITS commits..."
+# Random number of commits (3-5)
+COMMITS=$(( RANDOM % 3 + 3 ))
 
-for ((i=1;i<=COMMITS;i++))
-do
-    echo "$(date) - Random Commit $i - $RANDOM" >> activity.log
+echo "Creating ${COMMITS} commit(s)..."
+
+# Create the log file if it doesn't exist
+touch activity.log
+
+for ((i=1; i<=COMMITS; i++)); do
+    TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
+
+    echo "${TIMESTAMP} | Update ${i} | Random=${RANDOM}" >> activity.log
 
     git add activity.log
 
-    git commit -m "chore: automated update #$i"
+    if git diff --cached --quiet; then
+        echo "No changes to commit."
+        continue
+    fi
 
-    # Wait random 10-60 seconds
-    sleep $((RANDOM % 50 + 10))
+    git commit -m "chore: automated update #${i}"
+
+    echo "Created commit ${i}/${COMMITS}"
+
+    # Short pause between commits
+    sleep $((RANDOM % 30 + 5))
 done
+
+echo "Done."
