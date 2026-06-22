@@ -1,0 +1,42 @@
+name: Random Daily Commits
+
+on:
+  schedule:
+    # Every 10 minutes from 07:30–07:59 UTC (13:00–13:29 IST)
+    - cron: "30,40,50 7 * * *"
+
+    # Every 10 minutes from 08:00–08:59 UTC (13:30–14:29 IST)
+    - cron: "*/10 8 * * *"
+
+    # Every 10 minutes from 09:00–09:30 UTC (14:30–15:00 IST)
+    - cron: "0,10,20,30 9 * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Random Commit
+        run: |
+          # About a 30% chance each run.
+          # Across 16 runs/day, this averages ~5 commits.
+          if [ $((RANDOM % 100)) -lt 30 ]; then
+            echo "$(date) - $RANDOM" >> activity.log
+            git add activity.log
+            git commit -m "chore: daily update $(date +%T)"
+            git push
+          else
+            echo "Skipping this run."
+          fi
